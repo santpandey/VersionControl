@@ -10,3 +10,12 @@ Approach used in this problem:
 2) Use the file which is given by the service to do a comparison between the older version and the newer version
 
 3) Track the difference and display them
+
+To Test the code:
+
+1) Run the java code present in src code
+
+2) go to configuration folder and change data inside any of the 3 prop file and save the file
+
+3) Watch the console for the required output
+
