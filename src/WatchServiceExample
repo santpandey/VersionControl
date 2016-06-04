@@ -1,0 +1,196 @@
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Enumeration;
+import java.util.Properties;
+
+
+public class WatchServiceExample {
+
+	/**
+	 * @param args
+	 */
+	
+	//http://www.codejava.net/java-se/file-io/file-change-notification-example-with-watch-service-api
+	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		
+
+		try {
+			
+			WatchService watcher = FileSystems.getDefault().newWatchService();
+			
+			Path dir = Paths.get("C:/Users/daddy/workspace/Version/configuration");
+			
+			dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+			
+			/*Properties prop = new Properties();
+			prop.*/
+			
+			while (true) {
+                WatchKey key;
+                try {
+                    key = watcher.take();
+                } catch (InterruptedException ex) {
+                    return;
+                }
+             
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                     
+                    @SuppressWarnings("unchecked")
+                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                    Path fileName = ev.context();
+                     
+                    //System.out.println(kind.name() + ": " + fileName);
+                     
+                    if (kind == ENTRY_MODIFY 
+                            /*fileName.toString().equals("DirectoryWatchDemo.java")*/) {
+                    	
+                        //System.out.println("File changed is "+fileName.toString());
+                        
+                        compareDifference(fileName);
+                        
+                    }
+                }
+                 
+                boolean valid = key.reset();
+                
+                if (!valid) {
+                    break;
+                }
+            }
+                
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	private static void compareDifference(Path fileName) {
+		// TODO Auto-generated method stub
+		
+		Properties oldProperty = new Properties();
+		Properties newProperty = new Properties();
+		
+		File olderFile = new File("C:/Users/daddy/workspace/Version/configuration/PropertyHistory/"+fileName.toString());
+		//File olderFile = new File("C:/Users/daddy/workspace/Version/configuration/Props1a.properties");
+		//FileInputStream olderFileInput = new FileInputStream(olderFile);
+		//System.out.println(olderFile.length());
+		File newerFile = new File("C:/Users/daddy/workspace/Version/configuration/"+fileName.toString());
+		//FileInputStream newerFileInput = new FileInputStream(newerFile);
+		//System.out.println(newerFile.length());
+		
+		StringBuffer finalResult = new StringBuffer();
+		
+		try {
+			FileInputStream olderFileInput = new FileInputStream(olderFile);
+			//FileInputStream olderFileInput = this.getClass.
+			FileInputStream newerFileInput = new FileInputStream(newerFile);
+			
+			//for saving the newer property file in the older location
+			//FileOutputStream newerFileOutput = new FileOutputStream(olderFile);
+		
+			oldProperty.load(olderFileInput);
+			newProperty.load(newerFileInput);
+			
+			//newProperty.store(newerFileOutput,"File saved");
+			//System.out.println(oldProperty.isEmpty());
+			//System.out.println(newProperty.size()+" "+ oldProperty.size());
+			
+			Enumeration keys;
+			Enumeration olderKeys;
+			if(newProperty.size() > oldProperty.size())
+			{
+				finalResult.append("Addition has been done to "+fileName+" \n");
+				
+				keys = newProperty.keys();
+				//keys = oldProperty.keys();
+				while(keys.hasMoreElements())
+				{
+					String key = (String) keys.nextElement();
+					if(!oldProperty.containsKey(key))
+					{
+						finalResult.append("Property Added: "+key+" : "+newProperty.getProperty(key));
+					}
+				}
+				
+			}
+			else if(newProperty.size() < oldProperty.size())
+			{
+				finalResult.append("Deletion has been done to "+fileName);
+				
+				keys = oldProperty.keys();
+				
+				while(keys.hasMoreElements())
+				{
+					String key = (String) keys.nextElement();
+					
+					if(!newProperty.containsKey(key))
+					{
+						finalResult.append("Property deleted: "+key+" : "+oldProperty.getProperty(key));
+					}
+					
+				}
+				
+			}
+			else
+			{
+				finalResult.append("Changes has been done to "+fileName+"\n");
+				
+				keys = newProperty.keys();
+				
+				String olderValue="";
+				String newerValue="";
+				
+				while(keys.hasMoreElements())
+				{
+					String key = (String) keys.nextElement();
+					newerValue = newProperty.getProperty(key);
+					olderValue = oldProperty.getProperty(key);
+					
+					if(!newerValue.equalsIgnoreCase(olderValue))
+					{
+						finalResult.append("Property changed is :"+ key+"\n");
+						finalResult.append("Older Value: "+olderValue+"\n");
+						finalResult.append("Newer value: "+newerValue);
+					}
+				}
+				
+			}
+			
+			//Enumeration enuKeys = newProperty.elements();
+			
+			FileOutputStream newerFileOutput = new FileOutputStream(olderFile);
+			
+			newProperty.store(newerFileOutput,null);
+			
+			System.out.println(finalResult);
+			
+			olderFileInput.close();
+			newerFileInput.close();
+			
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+}
